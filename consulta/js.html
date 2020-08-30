@@ -1,0 +1,116 @@
+<script>
+//Inicializador para el formulario
+ document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems);
+    });
+ document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems);
+  });
+  
+
+
+  //Observadores
+
+document.getElementById('departamentos').addEventListener('change', detectarDepartamento)
+ 
+  
+function detectarDepartamento(){
+  const departamento = document.getElementById('departamentos').value
+  if (departamento != '' || departamento != ' '){
+      google.script.run.withSuccessHandler(completarNombre).autoCompletar(departamento);
+  }
+  else{
+    
+  }
+ 
+}
+   
+
+function limpiar(){
+  document.getElementById('documento').innerHTML = ' '
+  document.getElementById('paginacion').innerHTML = ' '
+  document.getElementById('editar').innerHTML = ' '
+  document.getElementById('botones').innerHTML = `
+    <button class="btn waves-effect waves-light blue darken-4" onclick="cargarDocumento()" name="action">Buscar
+       <i class="material-icons right">search</i>
+    </button>
+  `
+//Input
+  document.getElementById('autocomplete-input').value = ''
+//Lista desplegable
+  let departamentos = document.getElementById('departamentos')
+  departamentos.selectedIndex = 0
+  M.FormSelect.init(departamentos)
+  document.getElementById('documento').innerHTML = '<h1> </h1>'
+    
+}
+
+// Obtener la edad del estudianteDespues
+function cargarDocumento(){
+  
+  document.getElementById('botones').innerHTML = `
+    <button id = "limpiar" class="btn waves-effect waves-light teal" onclick="limpiar()" name="action">Limpiar
+      <i class="material-icons right">find_replace</i>
+    </button>
+  `
+  let nombre = document.getElementById('autocomplete-input').value
+  const departamento = document.getElementById('departamentos').value
+  if (nombre.length > 12){
+  //convertir a mayúsculas el valor del nombre
+     nombre = nombre.trim()
+  // callback para la consulta del dato según el nombre
+      google.script.run.withSuccessHandler(cargarUrl).getUrlsDocumentos(nombre, departamento)     
+  }
+  
+  else{
+      //Problemas  en el envío de datos
+      alert('Hubo un error en la consulta')
+      
+  }
+  
+}
+
+
+
+function cargarUrl(ids){
+  let i = 0
+  console.log(ids)
+  for (const id in ids){
+    document.getElementById('paginacion').innerHTML += `
+      <li class="active blue darken-4"><a onclick="subirArchivo('${ids[id]}')">${i+=1}</a></li>
+    `
+    
+  }
+
+}
+
+function subirArchivo(id){
+  document.getElementById('documento').innerHTML = 
+  `
+    <iframe  
+      class="responsive-iframe" 
+      sandbox="allow-scripts allow-popups allow-forms allow-same-origin allow-popups-to-escape-sandbox allow-downloads" 
+      frameborder="0" aria-label="Document, Reporte integral | ${id}" 
+      style="height: 100%; width: 100%"   allowfullscreen="" 
+      src="https://docs.google.com/document/d/${id}/preview?authuser=0">
+    </iframe>
+  `
+  document.getElementById('editar').innerHTML = `
+    <a class="waves-effect waves-teal btn-flat" target="_blank"
+       href="https://drive.google.com/open?authuser=0&id=${id}">Editar reporte
+       <i class="material-icons left">edit</i>
+    </a>
+  
+  `
+}
+
+// Autocompletado
+function completarNombre(letras){
+    const autoCompletar = document.getElementById('autocomplete-input')
+    const instances = M.Autocomplete.init(autoCompletar, {data : letras } )
+}
+
+  
+</script>
